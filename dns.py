@@ -5,20 +5,20 @@ import os
 class DNSStatusBarApp(rumps.App):
     def __init__(self):
         super(DNSStatusBarApp, self).__init__("DNS")
-        self.title = None
         self.icon = 'dns-small.png'
         self.interfaces = {}
-        self.dns = 'Google'
+        self.dns = 'Localhost'
         self.interface = self.get_active_interface()
 
         self.dns_list = {
+            'Localhost': '127.0.0.1 ::1',
             'Google': '8.8.8.8 8.8.4.4',
             'OpenDNS': '208.67.222.222 208.67.220.220',
-            '(default)': 'empty'
+            'None': 'empty'
         }
 
+        self.title = self.set_current_dns_in_title()
         self.build_menu()
-
 
     # Build the Menu itself
     def build_menu(self):
@@ -61,11 +61,19 @@ class DNSStatusBarApp(rumps.App):
         current_dns = self.get_current_dns_for_interface(self.interface)
 
         for item in self.menu:
-            if current_dns == item.title:
-                self.menu[item]._menuitem.setState_(True)
-            else:
-                self.menu[item]._menuitem.setState_(False)
+            if item in self.dns_list:
+                if self.dns_list[item] == current_dns:
+                    self.menu[item]._menuitem.setState_(True)
+                else:
+                    self.menu[item]._menuitem.setState_(False)
 
+    def set_current_dns_in_title(self):
+        current_dns = self.get_current_dns_for_interface(self.interface)
+
+        if current_dns in self.dns_list.values():
+            return list(self.dns_list.keys())[list(self.dns_list.values()).index(current_dns)]
+        else:
+            return None
 
     # Triggers for click buttons
     def click_interface(self, sender):
@@ -79,6 +87,7 @@ class DNSStatusBarApp(rumps.App):
     def click_dns(self, sender):
         self.set_dns(sender.title)
         self.unset_all_dns_checkbox()
+        self.title = self.set_current_dns_in_title()
 
     # Get all available interfaces
     def all_networks_services(self):
@@ -146,7 +155,6 @@ class DNSStatusBarApp(rumps.App):
                     _interface_str = interface_str
 
         return _interface_str
-
 
 if __name__ == "__main__":
     app = DNSStatusBarApp()
