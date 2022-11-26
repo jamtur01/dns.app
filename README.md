@@ -7,5 +7,6 @@ It's slightly modified for my needs from the [original](https://github.com/damln
 ## Build
 
 `make alias` - dev build
+
 `make app` - App build
  
