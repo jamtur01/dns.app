@@ -19,7 +19,7 @@ class DNSStatusBarApp(rumps.App):
             'None': 'empty'
         }
 
-        self.title = self.set_current_dns_in_title()
+        self.title = None
         self.build_menu()
 
     # Build the Menu itself
@@ -114,7 +114,7 @@ class DNSStatusBarApp(rumps.App):
     def click_dns(self, sender):
         self.set_dns(sender.title)
         self.unset_all_dns_checkbox()
-        self.title = self.set_current_dns_in_title()
+        #self.title = self.set_current_dns_in_title()
 
     # Get all available interfaces
     def all_networks_services(self):
