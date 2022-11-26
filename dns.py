@@ -7,8 +7,10 @@ class DNSStatusBarApp(rumps.App):
         super(DNSStatusBarApp, self).__init__("DNS")
         self.icon = 'dns-small.png'
         self.interfaces = {}
+        self.locations = {}
         self.dns = 'Localhost'
         self.interface = self.get_active_interface()
+        self.location = self.get_active_location()
 
         self.dns_list = {
             'Localhost': '127.0.0.1 ::1',
@@ -23,6 +25,7 @@ class DNSStatusBarApp(rumps.App):
     # Build the Menu itself
     def build_menu(self):
         self.build_interface_menu()
+        self.build_location_menu()
 
         menu = []
 
@@ -32,11 +35,13 @@ class DNSStatusBarApp(rumps.App):
 
         menu.append(None)
         menu.append({'Interfaces': self.interfaces.values() })
+        menu.append({'Locations': self.locations.values() })
         menu.append(None)
 
         self.menu = menu
 
         self.set_active_interface_in_menu()
+        self.set_active_location_in_menu()
         self.set_current_dns_in_menu()
 
     # Create Dict for interfaces and buttons. {"Wi-Fi": menu_item}
@@ -47,12 +52,30 @@ class DNSStatusBarApp(rumps.App):
             item = MenuItem(interface_str, callback=self.click_interface)
             self.interfaces[interface_str] = item
 
+   # Create Dict for interfaces and buttons. {"Wi-Fi": menu_item}
+    def build_location_menu(self):
+        locations = self.get_locations()
+
+        for location_str in locations:
+            item = MenuItem(location_str, callback=self.click_location)
+            self.locations[location_str] = item
+
     def set_active_interface_in_menu(self):
         current_interface = self.get_active_interface()
         buttons = self.interfaces.values()
 
         for item in buttons:
             if item.title == current_interface:
+                item._menuitem.setState_(True)
+            else:
+                item._menuitem.setState_(False)
+
+    def set_active_location_in_menu(self):
+        current_location = self.get_active_location()
+        buttons = self.locations.values()
+
+        for item in buttons:
+            if item.title == current_location:
                 item._menuitem.setState_(True)
             else:
                 item._menuitem.setState_(False)
@@ -84,6 +107,10 @@ class DNSStatusBarApp(rumps.App):
 
         self.unset_all_interfaces_checkbox()
 
+    def click_location(self, sender):
+        self.set_location(sender.title)
+        self.unset_all_locations_checkbox()
+
     def click_dns(self, sender):
         self.set_dns(sender.title)
         self.unset_all_dns_checkbox()
@@ -113,6 +140,16 @@ class DNSStatusBarApp(rumps.App):
         # Check
         self.interfaces[self.interface]._menuitem.setState_(True)
 
+    def unset_all_locations_checkbox(self):
+        # get the menuItems
+        buttons = self.locations.values()
+
+        for item in buttons:
+            item._menuitem.setState_(False)
+
+        # Check
+        self.locations[self.location]._menuitem.setState_(True)
+
     # Unset the checkbox on all items in Main Menu
     def unset_all_dns_checkbox(self):
         # Uncheck
@@ -125,6 +162,10 @@ class DNSStatusBarApp(rumps.App):
     def set_interface(self, interface_str):
         if self.interface != interface_str:
             self.interface = interface_str
+
+    def set_location(self, location_str):
+        self.location = location_str
+        os.system('networksetup -switchtolocation '+location_str)
 
     def set_dns(self, dns_str):
         self.dns = dns_str
@@ -156,6 +197,23 @@ class DNSStatusBarApp(rumps.App):
 
         return _interface_str
 
+    def get_locations(self):
+        cmd = 'networksetup -listlocations'
+        tmp = os.popen(cmd).read()
+        splited = tmp.split("\n")
+
+        list = []
+        for item in splited:
+            if item != "":
+                list.append(item)
+        return list
+
+    def get_active_location(self):
+        cmd = 'networksetup -getcurrentlocation'
+        location = os.popen(cmd).read().strip()
+
+        return location
+        
 if __name__ == "__main__":
     app = DNSStatusBarApp()
     app.run()
