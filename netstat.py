@@ -2,10 +2,10 @@ import rumps
 from rumps import *
 import os
 
-class DNSStatusBarApp(rumps.App):
+class NetStatusBarApp(rumps.App):
     def __init__(self):
-        super(DNSStatusBarApp, self).__init__("DNS")
-        self.icon = 'dns-small.png'
+        super(NetStatusBarApp, self).__init__("NetStatusApp")
+        self.icon = 'netstat-small.png'
         self.interfaces = {}
         self.locations = {}
         self.dns = 'Localhost'
@@ -166,10 +166,12 @@ class DNSStatusBarApp(rumps.App):
     def set_location(self, location_str):
         self.location = location_str
         os.system('networksetup -switchtolocation '+location_str)
+        notification("NetStatusApp", "Location change", "Changed location to "+location_str)
 
     def set_dns(self, dns_str):
         self.dns = dns_str
         os.system('networksetup -setdnsservers "'+self.interface+'" '+self.dns_list[dns_str])
+        notification("NetStatusApp", "DNS change", "Changed DNS for " +self.interface+ " to " +dns_str)
 
     def get_current_dns_for_interface(self, interface_str):
         cmd = 'networksetup -getdnsservers "'+self.interface+'"'
@@ -214,6 +216,9 @@ class DNSStatusBarApp(rumps.App):
 
         return location
         
+    def notification(self, title_str, subtitle_str, message_str):
+        notification(title_str, subtitle_str, message_str, data=None, sound=True)
+
 if __name__ == "__main__":
-    app = DNSStatusBarApp()
+    app = NetStatusBarApp()
     app.run()

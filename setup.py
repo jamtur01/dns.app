@@ -1,8 +1,8 @@
 from setuptools import setup
 
-APP = ['dns.py']
+APP = ['netstat.py']
 DATA_FILES = [
-    'dns-small.png',
+    'netstat-small.png',
     'icon.icns'
 ]
 
