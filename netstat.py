@@ -25,7 +25,6 @@ class NetStatusBarApp(rumps.App):
     # Build the Menu itself
     def build_menu(self):
         self.build_interface_menu()
-        self.build_location_menu()
 
         menu = []
 
@@ -34,8 +33,12 @@ class NetStatusBarApp(rumps.App):
             menu.append(item)
 
         menu.append(None)
+        for location_str in self.get_locations():
+            item = MenuItem(location_str, callback=self.click_location)
+            menu.append(item)
+
+        menu.append(None)
         menu.append({'Interfaces': self.interfaces.values() })
-        menu.append({'Locations': self.locations.values() })
         menu.append(None)
 
         self.menu = menu
@@ -53,13 +56,6 @@ class NetStatusBarApp(rumps.App):
             self.interfaces[interface_str] = item
 
    # Create Dict for interfaces and buttons. {"Wi-Fi": menu_item}
-    def build_location_menu(self):
-        locations = self.get_locations()
-
-        for location_str in locations:
-            item = MenuItem(location_str, callback=self.click_location)
-            self.locations[location_str] = item
-
     def set_active_interface_in_menu(self):
         current_interface = self.get_active_interface()
         buttons = self.interfaces.values()
@@ -71,14 +67,14 @@ class NetStatusBarApp(rumps.App):
                 item._menuitem.setState_(False)
 
     def set_active_location_in_menu(self):
-        current_location = self.get_active_location()
-        buttons = self.locations.values()
+        locations = self.get_locations()
 
-        for item in buttons:
-            if item.title == current_location:
-                item._menuitem.setState_(True)
-            else:
-                item._menuitem.setState_(False)
+        for item in self.menu:
+            if item in locations:
+                if item == self.location:
+                    self.menu[item]._menuitem.setState_(True)
+                else:
+                    self.menu[item]._menuitem.setState_(False)
 
     def set_current_dns_in_menu(self):
         current_dns = self.get_current_dns_for_interface(self.interface)
@@ -89,14 +85,6 @@ class NetStatusBarApp(rumps.App):
                     self.menu[item]._menuitem.setState_(True)
                 else:
                     self.menu[item]._menuitem.setState_(False)
-
-    def set_current_dns_in_title(self):
-        current_dns = self.get_current_dns_for_interface(self.interface)
-
-        if current_dns in self.dns_list.values():
-            return list(self.dns_list.keys())[list(self.dns_list.values()).index(current_dns)]
-        else:
-            return None
 
     # Triggers for click buttons
     def click_interface(self, sender):
@@ -141,20 +129,21 @@ class NetStatusBarApp(rumps.App):
         self.interfaces[self.interface]._menuitem.setState_(True)
 
     def unset_all_locations_checkbox(self):
-        # get the menuItems
-        buttons = self.locations.values()
+        locations = self.get_locations()
 
-        for item in buttons:
-            item._menuitem.setState_(False)
+        for item in self.menu:
+            if item in locations:
+              item._menuitem.setState_(False)
 
-        # Check
-        self.locations[self.location]._menuitem.setState_(True)
+      # Check
+        self.menu[self.location]._menuitem.setState_(True)
 
     # Unset the checkbox on all items in Main Menu
     def unset_all_dns_checkbox(self):
         # Uncheck
         for item in self.menu:
-            self.menu[item]._menuitem.setState_(False)
+            if item in self.dns_list:
+                self.menu[item]._menuitem.setState_(False)
 
         # Check
         self.menu[self.dns]._menuitem.setState_(True)
